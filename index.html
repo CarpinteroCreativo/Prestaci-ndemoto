@@ -1,1 +1,604 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Saldo y Pagos</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
 
+        body {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 900px;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+
+        header p {
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            padding: 30px;
+        }
+
+        .balance-container {
+            background: linear-gradient(to right, #3498db, #2ecc71);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .balance-label {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+
+        .balance-amount {
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+
+        .history-container {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .history-title {
+            font-size: 1.3rem;
+            color: #2c3e50;
+        }
+
+        .btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #2980b9;
+        }
+
+        .btn-danger {
+            background-color: #e74c3c;
+        }
+
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+
+        .history-list {
+            list-style-type: none;
+        }
+
+        .history-item {
+            display: grid;
+            grid-template-columns: 1fr auto auto;
+            gap: 10px;
+            padding: 15px 10px;
+            border-bottom: 1px solid #eaeaea;
+            transition: background-color 0.2s;
+        }
+
+        .history-item:hover {
+            background-color: #f0f0f0;
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .payment-description {
+            font-weight: 500;
+            color: #2c3e50;
+        }
+
+        .payment-amount {
+            font-weight: bold;
+            color: #27ae60;
+        }
+
+        .payment-amount.negative {
+            color: #e74c3c;
+        }
+
+        .payment-date {
+            grid-column: 1 / -1;
+            font-size: 0.8rem;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+
+        .empty-history {
+            text-align: center;
+            color: #7f8c8d;
+            font-style: italic;
+            padding: 20px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 25px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal h2 {
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #2c3e50;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-cancel {
+            background-color: #95a5a6;
+        }
+
+        .btn-cancel:hover {
+            background-color: #7f8c8d;
+        }
+
+        .type-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .type-option {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .type-option.selected {
+            border-color: #3498db;
+            background-color: #ebf5fb;
+        }
+
+        .type-option.income.selected {
+            border-color: #27ae60;
+            background-color: #eafaf1;
+        }
+
+        .type-option.expense.selected {
+            border-color: #e74c3c;
+            background-color: #fdedec;
+        }
+
+        @media (max-width: 600px) {
+            .balance-amount {
+                font-size: 2rem;
+            }
+            
+            .main-content {
+                padding: 20px;
+            }
+            
+            .history-item {
+                grid-template-columns: 1fr;
+            }
+            
+            .history-actions {
+                display: flex;
+                justify-content: flex-end;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <h1>Control de Finanzas Personales</h1>
+            <p>Gestiona tu saldo y revisa tu historial de pagos</p>
+        </header>
+        
+        <div class="main-content">
+            <div class="balance-container">
+                <div class="balance-label">Saldo Total Actual</div>
+                <div class="balance-amount" id="balance">$0.00</div>
+            </div>
+            
+            <div class="history-container">
+                <div class="history-header">
+                    <h2 class="history-title">Historial de Pagos</h2>
+                    <button class="btn" id="add-payment-btn">Agregar Pago</button>
+                </div>
+                <ul class="history-list" id="payment-history">
+                    <!-- Los elementos del historial se insertarán aquí con JavaScript -->
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para agregar pagos -->
+    <div class="modal" id="payment-modal">
+        <div class="modal-content">
+            <h2 id="modal-title">Agregar Nuevo Pago</h2>
+            <form id="payment-form">
+                <div class="type-selector">
+                    <div class="type-option income" data-type="income">
+                        Ingreso
+                    </div>
+                    <div class="type-option expense selected" data-type="expense">
+                        Gasto
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="payment-description">Descripción</label>
+                    <input type="text" id="payment-description" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="payment-amount">Monto</label>
+                    <input type="number" id="payment-amount" class="form-control" min="0.01" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="payment-date">Fecha</label>
+                    <input type="date" id="payment-date" class="form-control" required>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-cancel" id="cancel-btn">Cancelar</button>
+                    <button type="submit" class="btn">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Clave para el almacenamiento local
+        const STORAGE_KEY = 'paymentHistory';
+
+        // Obtener datos del almacenamiento local o usar datos por defecto
+        function getPaymentHistory() {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+                return JSON.parse(stored);
+            } else {
+                // Datos de ejemplo si no hay datos guardados
+                return [
+                    { id: 1, description: "Pago de servicios", amount: -150.50, date: "2023-05-15", type: "expense" },
+                    { id: 2, description: "Transferencia recibida", amount: 500.00, date: "2023-05-12", type: "income" },
+                    { id: 3, description: "Compra en supermercado", amount: -85.25, date: "2023-05-10", type: "expense" }
+                ];
+            }
+        }
+
+        // Guardar datos en el almacenamiento local
+        function savePaymentHistory(history) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+        }
+
+        // Variables globales
+        let paymentHistory = getPaymentHistory();
+        let editingId = null;
+
+        // Referencias a elementos DOM
+        const balanceElement = document.getElementById('balance');
+        const historyList = document.getElementById('payment-history');
+        const addPaymentBtn = document.getElementById('add-payment-btn');
+        const paymentModal = document.getElementById('payment-modal');
+        const paymentForm = document.getElementById('payment-form');
+        const cancelBtn = document.getElementById('cancel-btn');
+        const modalTitle = document.getElementById('modal-title');
+        const typeOptions = document.querySelectorAll('.type-option');
+
+        // Función para formatear números como moneda
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('es-MX', {
+                style: 'currency',
+                currency: 'MXN'
+            }).format(Math.abs(amount));
+        }
+
+        // Función para calcular el saldo total
+        function calculateTotalBalance() {
+            return paymentHistory.reduce((total, payment) => total + payment.amount, 0);
+        }
+
+        // Función para formatear fecha para mostrar
+        function formatDisplayDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('es-MX');
+        }
+
+        // Función para obtener la fecha actual en formato YYYY-MM-DD
+        function getCurrentDate() {
+            const now = new Date();
+            return now.toISOString().split('T')[0];
+        }
+
+        // Función para renderizar el historial de pagos
+        function renderPaymentHistory() {
+            // Limpiar la lista existente
+            historyList.innerHTML = '';
+            
+            // Verificar si hay pagos en el historial
+            if (paymentHistory.length === 0) {
+                historyList.innerHTML = '<li class="empty-history">No hay pagos registrados</li>';
+                return;
+            }
+            
+            // Ordenar pagos por fecha (más recientes primero)
+            const sortedPayments = [...paymentHistory].sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            // Crear elementos para cada pago
+            sortedPayments.forEach(payment => {
+                const listItem = document.createElement('li');
+                listItem.className = 'history-item';
+                
+                const amountClass = payment.amount >= 0 ? 'payment-amount' : 'payment-amount negative';
+                const formattedAmount = formatCurrency(payment.amount);
+                const displayDate = formatDisplayDate(payment.date);
+                
+                listItem.innerHTML = `
+                    <span class="payment-description">${payment.description}</span>
+                    <span class="${amountClass}">${payment.amount >= 0 ? '+' : '-'} ${formattedAmount}</span>
+                    <div class="history-actions">
+                        <button class="btn btn-danger delete-btn" data-id="${payment.id}">Eliminar</button>
+                    </div>
+                    <span class="payment-date">${displayDate}</span>
+                `;
+                
+                historyList.appendChild(listItem);
+            });
+            
+            // Añadir event listeners a los botones de eliminar
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = parseInt(this.getAttribute('data-id'));
+                    deletePayment(id);
+                });
+            });
+        }
+
+        // Función para actualizar el saldo mostrado
+        function updateBalanceDisplay() {
+            const totalBalance = calculateTotalBalance();
+            balanceElement.textContent = formatCurrency(totalBalance);
+            
+            // Cambiar color del saldo si es negativo
+            if (totalBalance < 0) {
+                balanceElement.style.color = '#e74c3c';
+            } else {
+                balanceElement.style.color = 'white';
+            }
+        }
+
+        // Función para abrir el modal
+        function openModal(payment = null) {
+            if (payment) {
+                // Modo edición
+                editingId = payment.id;
+                modalTitle.textContent = 'Editar Pago';
+                document.getElementById('payment-description').value = payment.description;
+                document.getElementById('payment-amount').value = Math.abs(payment.amount);
+                document.getElementById('payment-date').value = payment.date;
+                
+                // Seleccionar el tipo correcto
+                typeOptions.forEach(option => {
+                    option.classList.remove('selected');
+                    if (option.getAttribute('data-type') === payment.type) {
+                        option.classList.add('selected');
+                    }
+                });
+            } else {
+                // Modo agregar
+                editingId = null;
+                modalTitle.textContent = 'Agregar Nuevo Pago';
+                paymentForm.reset();
+                document.getElementById('payment-date').value = getCurrentDate();
+                
+                // Establecer gasto como predeterminado
+                typeOptions.forEach(option => {
+                    option.classList.remove('selected');
+                    if (option.getAttribute('data-type') === 'expense') {
+                        option.classList.add('selected');
+                    }
+                });
+            }
+            
+            paymentModal.style.display = 'flex';
+        }
+
+        // Función para cerrar el modal
+        function closeModal() {
+            paymentModal.style.display = 'none';
+            editingId = null;
+        }
+
+        // Función para agregar o editar un pago
+        function savePayment(formData) {
+            const selectedType = document.querySelector('.type-option.selected').getAttribute('data-type');
+            const amount = parseFloat(formData.amount);
+            const signedAmount = selectedType === 'income' ? amount : -amount;
+            
+            if (editingId) {
+                // Editar pago existente
+                const index = paymentHistory.findIndex(p => p.id === editingId);
+                if (index !== -1) {
+                    paymentHistory[index] = {
+                        id: editingId,
+                        description: formData.description,
+                        amount: signedAmount,
+                        date: formData.date,
+                        type: selectedType
+                    };
+                }
+            } else {
+                // Agregar nuevo pago
+                const newId = paymentHistory.length > 0 ? Math.max(...paymentHistory.map(p => p.id)) + 1 : 1;
+                paymentHistory.push({
+                    id: newId,
+                    description: formData.description,
+                    amount: signedAmount,
+                    date: formData.date,
+                    type: selectedType
+                });
+            }
+            
+            // Guardar en almacenamiento local
+            savePaymentHistory(paymentHistory);
+            
+            // Actualizar la interfaz
+            updateBalanceDisplay();
+            renderPaymentHistory();
+            
+            // Cerrar el modal
+            closeModal();
+        }
+
+        // Función para eliminar un pago
+        function deletePayment(id) {
+            if (confirm('¿Estás seguro de que quieres eliminar este pago?')) {
+                paymentHistory = paymentHistory.filter(payment => payment.id !== id);
+                
+                // Guardar en almacenamiento local
+                savePaymentHistory(paymentHistory);
+                
+                // Actualizar la interfaz
+                updateBalanceDisplay();
+                renderPaymentHistory();
+            }
+        }
+
+        // Inicializar la aplicación
+        function initApp() {
+            // Configurar la fecha actual en el formulario
+            document.getElementById('payment-date').value = getCurrentDate();
+            
+            // Configurar event listeners para los botones de tipo
+            typeOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    typeOptions.forEach(opt => opt.classList.remove('selected'));
+                    this.classList.add('selected');
+                });
+            });
+            
+            // Event listener para el botón de agregar pago
+            addPaymentBtn.addEventListener('click', () => openModal());
+            
+            // Event listener para el botón de cancelar
+            cancelBtn.addEventListener('click', closeModal);
+            
+            // Event listener para el formulario
+            paymentForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = {
+                    description: document.getElementById('payment-description').value,
+                    amount: document.getElementById('payment-amount').value,
+                    date: document.getElementById('payment-date').value
+                };
+                
+                savePayment(formData);
+            });
+            
+            // Cerrar modal al hacer clic fuera del contenido
+            paymentModal.addEventListener('click', function(e) {
+                if (e.target === paymentModal) {
+                    closeModal();
+                }
+            });
+            
+            // Inicializar la interfaz
+            updateBalanceDisplay();
+            renderPaymentHistory();
+        }
+
+        // Ejecutar cuando el DOM esté completamente cargado
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
